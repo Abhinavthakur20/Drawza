@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply m-0 min-h-screen text-slate-900 antialiased;
+    background:
+      radial-gradient(circle at 8% 12%, rgba(37, 99, 235, 0.16), transparent 34%),
+      radial-gradient(circle at 92% 88%, rgba(59, 130, 246, 0.14), transparent 32%),
+      linear-gradient(140deg, #f9fbff, #f2f6fc 55%, #eef3fa);
+  }
+}
+
+@layer components {
+  .drawza-card {
+    @apply rounded-3xl border border-slate-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.08)];
+  }
+
+  .drawza-pill {
+    @apply inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-blue-700;
+  }
+
+  .drawza-btn-primary {
+    @apply rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700;
+  }
+
+  .drawza-btn-secondary {
+    @apply rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50;
+  }
+
+  .drawza-input {
+    @apply w-full rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-sm outline-none ring-blue-300/40 transition focus:ring-2;
+  }
+}
