@@ -176,6 +176,3 @@ Add exact frontend origin in OAuth client JavaScript origins and wait a few minu
 
 Current WebRTC config is STUN-only. For reliable cross-network voice, add a TURN server in ICE config.
 
-## License
-
-This project is for educational/personal use unless you add your preferred license.
