@@ -224,7 +224,13 @@ export default function CollabHub({ socket, roomId, userName }) {
     };
 
     const onVoiceSignal = async ({ fromSocketId, fromUserName, signal }) => {
-      if (!fromSocketId || !signal || !inVoice) {
+      if (!fromSocketId || !signal) {
+        return;
+      }
+
+      // Ignore signals until local audio stream is ready.
+      // This avoids dropping early offers due to async React state timing.
+      if (!localStreamRef.current) {
         return;
       }
 
@@ -266,7 +272,7 @@ export default function CollabHub({ socket, roomId, userName }) {
       socket.off("voice-user-muted", onVoiceUserMuted);
       socket.off("voice-signal", onVoiceSignal);
     };
-  }, [socket, roomId, inVoice]);
+  }, [socket, roomId]);
 
   useEffect(() => () => leaveVoice(), []);
 
