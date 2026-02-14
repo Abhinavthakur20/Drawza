@@ -55,6 +55,8 @@ export default function Toolbar({
   setPanOffset,
   onUndo,
   onRedo,
+  onClearAll,
+  hasElements,
   onlineCount,
   onShareRoomCode,
   onLogout,
@@ -144,6 +146,13 @@ export default function Toolbar({
             <button className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs" onClick={onRedo}>
               Redo
             </button>
+            <button
+              className="rounded-lg border border-rose-200 bg-rose-50 px-2 py-1.5 text-xs text-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={onClearAll}
+              disabled={!hasElements}
+            >
+              Clear all
+            </button>
           </div>
         </div>
 
@@ -231,6 +240,16 @@ export default function Toolbar({
             onClick={onRedo}
           >
             <i className="ri-arrow-go-forward-line text-[14px]" />
+          </button>
+
+          <button
+            title="Clear all"
+            aria-label="Clear all"
+            className="rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-2 text-xs text-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={onClearAll}
+            disabled={!hasElements}
+          >
+            <i className="ri-delete-bin-6-line text-[14px]" />
           </button>
 
           <button

@@ -34,6 +34,8 @@ export default function Whiteboard() {
     patchElement,
     deleteElement,
     removeRemoteElement,
+    clearElements,
+    clearRemoteElements,
     setSelectedIds,
     setTool,
     setZoom,
@@ -98,6 +100,10 @@ export default function Whiteboard() {
       removeRemoteElement(elementId);
     });
 
+    socket.on("element-clear", () => {
+      clearRemoteElements();
+    });
+
     socket.on("cursor-move", ({ userId, cursor }) => {
       setCursor(userId, cursor);
     });
@@ -124,6 +130,7 @@ export default function Whiteboard() {
     patchElement,
     deleteElement,
     removeRemoteElement,
+    clearRemoteElements,
     setCursor,
     logout,
     navigate,
@@ -160,11 +167,15 @@ export default function Whiteboard() {
         deleteElement(elementId);
         socketRef.current?.emit("element-delete", { roomId, elementId });
       },
+      onClear: () => {
+        clearElements();
+        socketRef.current?.emit("element-clear", { roomId });
+      },
       onCursorMove: (cursor) => {
         socketRef.current?.emit("cursor-move", { roomId, cursor });
       },
     }),
-    [roomId, createElement, updateElement, patchElement, deleteElement]
+    [roomId, createElement, updateElement, patchElement, deleteElement, clearElements]
   );
 
   const selectedElement = useMemo(
@@ -257,6 +268,17 @@ export default function Whiteboard() {
     window.prompt("Copy this room code", roomId);
   };
 
+  const handleClearAll = () => {
+    if (!elements.length) {
+      return;
+    }
+    const confirmed = window.confirm("Clear all drawings from this board?");
+    if (!confirmed) {
+      return;
+    }
+    handlers.onClear();
+  };
+
   return (
     <div className="relative h-screen overflow-hidden bg-[#f7f7f8]">
       <Canvas
@@ -302,6 +324,8 @@ export default function Whiteboard() {
         setPanOffset={setPanOffset}
         onUndo={undo}
         onRedo={redo}
+        onClearAll={handleClearAll}
+        hasElements={elements.length > 0}
         onlineCount={onlineCount}
         onShareRoomCode={handleShareRoomCode}
         onLogout={handleLogout}

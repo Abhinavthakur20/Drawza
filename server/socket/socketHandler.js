@@ -198,6 +198,13 @@ function initSocket(io) {
       socket.to(roomId).emit("element-delete", { elementId });
     });
 
+    socket.on("element-clear", ({ roomId }) => {
+      if (!roomId) {
+        return;
+      }
+      socket.to(roomId).emit("element-clear");
+    });
+
     socket.on("cursor-move", ({ roomId, cursor }) => {
       if (!roomId || !cursor) {
         return;

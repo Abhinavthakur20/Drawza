@@ -13,16 +13,32 @@ const { initSocket } = require("./socket/socketHandler");
 const app = express();
 const server = http.createServer(app);
 
+const DEFAULT_ALLOWED_ORIGINS = ["http://localhost:5173", "https://drawza.vercel.app"];
+const ENV_ORIGINS = (process.env.CLIENT_URLS || process.env.CLIENT_URL || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const ALLOWED_ORIGINS = [...new Set([...DEFAULT_ALLOWED_ORIGINS, ...ENV_ORIGINS])];
+
+const corsOriginValidator = (origin, callback) => {
+  // Allow non-browser tools (no Origin header), then strictly allow listed origins.
+  if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+    callback(null, true);
+    return;
+  }
+  callback(new Error(`CORS blocked for origin: ${origin}`));
+};
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: corsOriginValidator,
     credentials: true,
   },
 });
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: corsOriginValidator,
     credentials: true,
   })
 );

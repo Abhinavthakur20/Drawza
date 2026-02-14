@@ -22,14 +22,68 @@
   }
 
   .drawza-btn-primary {
-    @apply rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700;
+    @apply rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition duration-300 hover:bg-blue-700 hover:shadow-[0_10px_24px_rgba(37,99,235,0.35)];
   }
 
   .drawza-btn-secondary {
-    @apply rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50;
+    @apply rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition duration-300 hover:bg-slate-50 hover:shadow-[0_8px_20px_rgba(15,23,42,0.08)];
   }
 
   .drawza-input {
     @apply w-full rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-sm outline-none ring-blue-300/40 transition focus:ring-2;
+  }
+}
+
+@layer utilities {
+  @keyframes drawza-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes drawza-float-soft {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
+  @keyframes drawza-gradient-shift {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .animate-fade-up {
+    animation: drawza-fade-up 700ms ease-out both;
+  }
+
+  .animate-float-soft {
+    animation: drawza-float-soft 4.4s ease-in-out infinite;
+  }
+
+  .animate-gradient-shift {
+    background-size: 200% 200%;
+    animation: drawza-gradient-shift 7s ease-in-out infinite alternate;
+  }
+
+  .drawza-hover-card {
+    transition: transform 280ms ease, box-shadow 280ms ease;
+  }
+
+  .drawza-hover-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 38px rgba(14, 23, 40, 0.12);
   }
 }

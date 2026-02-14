@@ -58,6 +58,19 @@ const useWhiteboardStore = create((set, get) => ({
       selectedIds: state.selectedIds.filter((id) => id !== elementId),
     })),
 
+  clearElements: () =>
+    set((state) => ({
+      ...pushHistory(state),
+      elements: [],
+      selectedIds: [],
+    })),
+
+  clearRemoteElements: () =>
+    set(() => ({
+      elements: [],
+      selectedIds: [],
+    })),
+
   setSelectedIds: (ids) => set({ selectedIds: ids }),
   setTool: (tool) => set({ tool }),
   setZoom: (zoom) => set({ zoom: Math.max(0.2, Math.min(4, zoom)) }),
