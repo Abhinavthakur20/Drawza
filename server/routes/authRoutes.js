@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require("google-auth-library");
 const User = require("../models/User");
+const { verifyJWT } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -16,6 +17,16 @@ function signToken(user) {
     process.env.JWT_SECRET,
     { expiresIn: "7d" }
   );
+}
+
+function serializeUser(user) {
+  return {
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    avatarUrl: user.avatarUrl || "",
+    createdAt: user.createdAt,
+  };
 }
 
 router.post("/signup", async (req, res) => {
@@ -43,13 +54,7 @@ router.post("/signup", async (req, res) => {
 
     return res.status(201).json({
       token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        avatarUrl: user.avatarUrl || "",
-        createdAt: user.createdAt,
-      },
+      user: serializeUser(user),
     });
   } catch (error) {
     return res.status(500).json({ message: "Signup failed", error: error.message });
@@ -85,13 +90,7 @@ router.post("/login", async (req, res) => {
 
     return res.status(200).json({
       token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        avatarUrl: user.avatarUrl || "",
-        createdAt: user.createdAt,
-      },
+      user: serializeUser(user),
     });
   } catch (error) {
     return res.status(500).json({ message: "Login failed", error: error.message });
@@ -160,16 +159,51 @@ router.post("/google", async (req, res) => {
     const token = signToken(user);
     return res.status(200).json({
       token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        avatarUrl: user.avatarUrl || "",
-        createdAt: user.createdAt,
-      },
+      user: serializeUser(user),
     });
   } catch (error) {
     return res.status(401).json({ message: "Google sign-in failed", error: error.message });
+  }
+});
+
+router.get("/me", verifyJWT, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json({ user: serializeUser(user) });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to fetch profile", error: error.message });
+  }
+});
+
+router.put("/me", verifyJWT, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const updates = {};
+    if (typeof req.body.name === "string") {
+      const name = req.body.name.trim();
+      if (!name || name.length < 2 || name.length > 100) {
+        return res.status(400).json({ message: "Name must be between 2 and 100 characters" });
+      }
+      updates.name = name;
+    }
+
+    if (typeof req.body.avatarUrl === "string") {
+      updates.avatarUrl = req.body.avatarUrl.trim();
+    }
+
+    Object.assign(user, updates);
+    await user.save();
+
+    return res.status(200).json({ message: "Profile updated", user: serializeUser(user) });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to update profile", error: error.message });
   }
 });
 

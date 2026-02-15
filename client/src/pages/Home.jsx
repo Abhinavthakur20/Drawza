@@ -41,6 +41,8 @@ const HIGHLIGHTED_FEATURES = [
 
 export default function Home() {
   const token = useAuthStore((state) => state.token);
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
 
   return (
     <main className="min-h-screen bg-sky-50/40 text-slate-900">
@@ -50,12 +52,38 @@ export default function Home() {
             <img src="/drawza-logo.svg" alt="Drawza logo" className="h-16 w-auto animate-float-soft sm:h-20" />
           </div>
           <nav className="flex items-center gap-3 text-sm">
-            <Link className="drawza-btn-secondary" to="/login">
-              Log in
-            </Link>
-            <Link className="drawza-btn-primary" to={token ? "/rooms" : "/signup"}>
-              {token ? "Open board" : "Get started"}
-            </Link>
+            {!token ? (
+              <>
+                <Link className="drawza-btn-secondary" to="/login">
+                  Log in
+                </Link>
+                <Link className="drawza-btn-primary" to="/signup">
+                  Get started
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/profile"
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm"
+                >
+                  {user?.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={user?.name || "User"} className="h-6 w-6 rounded-full object-cover" />
+                  ) : (
+                    <span className="grid h-6 w-6 place-items-center rounded-full bg-slate-900 text-[10px] font-bold text-white">
+                      {(user?.name || "U").slice(0, 1).toUpperCase()}
+                    </span>
+                  )}
+                  <span className="max-w-[120px] truncate">{user?.name || "Profile"}</span>
+                </Link>
+                <Link className="drawza-btn-primary" to="/rooms">
+                  Open board
+                </Link>
+                <button className="drawza-btn-secondary" onClick={logout}>
+                  Logout
+                </button>
+              </>
+            )}
           </nav>
         </header>
 

@@ -1,6 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const ICE_SERVERS = [{ urls: "stun:stun.l.google.com:19302" }];
+const VOICE_MEDIA_CONSTRAINTS = {
+  audio: {
+    echoCancellation: true,
+    noiseSuppression: true,
+    autoGainControl: true,
+    channelCount: 1,
+    sampleRate: 48000,
+    sampleSize: 16,
+  },
+};
 
 function upsertParticipant(list, participant) {
   const next = [...list];
@@ -51,7 +61,21 @@ export default function CollabHub({ socket, roomId, userName }) {
     const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
 
     localStreamRef.current.getTracks().forEach((track) => {
-      pc.addTrack(track, localStreamRef.current);
+      const sender = pc.addTrack(track, localStreamRef.current);
+      const params = sender.getParameters();
+      const currentEncoding = params.encodings?.[0] || {};
+      sender
+        .setParameters({
+          ...params,
+          encodings: [
+            {
+              ...currentEncoding,
+              maxBitrate: 32000,
+              dtx: "enabled",
+            },
+          ],
+        })
+        .catch(() => {});
     });
 
     pc.onicecandidate = (event) => {
@@ -130,7 +154,7 @@ export default function CollabHub({ socket, roomId, userName }) {
       return;
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia(VOICE_MEDIA_CONSTRAINTS);
       localStreamRef.current = stream;
       stream.getAudioTracks().forEach((track) => {
         track.enabled = true;

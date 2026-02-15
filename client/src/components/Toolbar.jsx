@@ -61,6 +61,7 @@ export default function Toolbar({
   hasElements,
   onlineCount,
   onShareRoomCode,
+  onProfile,
   onLogout,
 }) {
   const [mobileStyleOpen, setMobileStyleOpen] = useState(false);
@@ -172,6 +173,12 @@ export default function Toolbar({
           >
             Share code
           </button>
+          <button
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 shadow-sm"
+            onClick={onProfile}
+          >
+            Profile
+          </button>
           <span className="hidden rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 shadow-sm lg:inline-flex">
             Online: {onlineCount}
           </span>
@@ -281,6 +288,15 @@ export default function Toolbar({
             onClick={onShareRoomCode}
           >
             Share
+          </button>
+
+          <button
+            title="Profile"
+            aria-label="Profile"
+            className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-[10px] text-slate-700"
+            onClick={onProfile}
+          >
+            Profile
           </button>
 
           <button className="rounded-lg bg-[#635bff] px-2 py-1.5 text-[10px] text-white" onClick={onLogout}>

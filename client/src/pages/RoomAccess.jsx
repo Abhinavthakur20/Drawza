@@ -37,6 +37,10 @@ export default function RoomAccess() {
     navigate(`/board/${roomId}`);
   };
 
+  const openProfile = () => {
+    navigate("/profile");
+  };
+
   const joinByCode = (e) => {
     e.preventDefault();
     setError("");
@@ -72,6 +76,28 @@ export default function RoomAccess() {
             <p className="mb-1 text-sm font-semibold text-blue-800">Create collaborative room</p>
             <p className="text-xs text-blue-700">Generates a new room code for team collaboration.</p>
           </button>
+        </div>
+
+        <div className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
+          <p className="mb-2 text-sm font-semibold">Your profile</p>
+          <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+            <div className="flex items-center gap-3">
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user?.name || "User"} className="h-10 w-10 rounded-full object-cover" />
+              ) : (
+                <div className="grid h-10 w-10 place-items-center rounded-full bg-slate-800 text-xs font-semibold text-white">
+                  {(user?.name || "U").slice(0, 1).toUpperCase()}
+                </div>
+              )}
+              <div>
+                <p className="text-sm font-semibold text-slate-800">{user?.name || "Guest"}</p>
+                <p className="text-xs text-slate-500">{user?.email || "-"}</p>
+              </div>
+            </div>
+            <button className="drawza-btn-secondary !rounded-xl !px-4 !py-2" onClick={openProfile}>
+              Edit profile
+            </button>
+          </div>
         </div>
 
         <form className="mt-5 rounded-xl border border-slate-200 bg-white p-4" onSubmit={joinByCode}>

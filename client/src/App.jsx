@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Profile from "./pages/Profile";
 import RoomAccess from "./pages/RoomAccess";
 import Signup from "./pages/Signup";
 import Whiteboard from "./pages/Whiteboard";
@@ -27,6 +28,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <RoomAccess />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
           </ProtectedRoute>
         }
       />

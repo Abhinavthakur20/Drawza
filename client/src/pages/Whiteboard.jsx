@@ -255,6 +255,10 @@ export default function Whiteboard() {
     navigate("/login", { replace: true });
   };
 
+  const handleProfile = () => {
+    navigate("/profile");
+  };
+
   const handleShareRoomCode = async () => {
     const shareText = `Room code: ${roomId}`;
     try {
@@ -328,6 +332,7 @@ export default function Whiteboard() {
         hasElements={elements.length > 0}
         onlineCount={onlineCount}
         onShareRoomCode={handleShareRoomCode}
+        onProfile={handleProfile}
         onLogout={handleLogout}
       />
 
