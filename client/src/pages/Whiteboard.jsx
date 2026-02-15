@@ -280,7 +280,7 @@ export default function Whiteboard() {
   };
 
   return (
-    <div className="relative h-screen overflow-hidden bg-[#f7f7f8]">
+    <div className="relative h-[100dvh] overflow-hidden bg-[#f7f7f8]">
       <Canvas
         elements={elements}
         selectedIds={selectedIds}

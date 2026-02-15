@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 const TOOL_ITEMS = [
   { id: "select", label: "Pointer", icon: "ri-cursor-line" },
   { id: "text", label: "Text", icon: "ri-text" },
@@ -61,6 +63,7 @@ export default function Toolbar({
   onShareRoomCode,
   onLogout,
 }) {
+  const [mobileStyleOpen, setMobileStyleOpen] = useState(false);
   const showStylePanel = tool !== "select" || !!selectedElement;
 
   const applyStyle = (patch) => {
@@ -214,6 +217,15 @@ export default function Toolbar({
             onChange={(e) => onPickStroke(e.target.value)}
           />
 
+          <input
+            type="color"
+            className="h-8 w-9 cursor-pointer rounded-lg border border-slate-300 bg-white px-1"
+            value={fillColor === "transparent" ? "#ffffff" : fillColor}
+            onChange={(e) => onPickFill(e.target.value)}
+            title="Fill color"
+            aria-label="Fill color"
+          />
+
           <select
             className="w-9 rounded-lg border border-slate-300 bg-white px-1 py-1.5 text-[10px]"
             value={strokeWidth}
@@ -250,6 +262,17 @@ export default function Toolbar({
             disabled={!hasElements}
           >
             <i className="ri-delete-bin-6-line text-[14px]" />
+          </button>
+
+          <button
+            title="Style panel"
+            aria-label="Style panel"
+            className={`rounded-lg border px-2.5 py-2 text-xs ${
+              mobileStyleOpen ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300 bg-white text-slate-700"
+            }`}
+            onClick={() => setMobileStyleOpen((prev) => !prev)}
+          >
+            <i className="ri-palette-line text-[14px]" />
           </button>
 
           <button
@@ -359,6 +382,86 @@ export default function Toolbar({
             </div>
 
             <div className="mb-2">Actions</div>
+            <div className="flex gap-2">
+              <button
+                className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={!selectedElement}
+                onClick={onDuplicateSelected}
+              >
+                Duplicate
+              </button>
+              <button
+                className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={!selectedElement}
+                onClick={onDeleteSelected}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showStylePanel && mobileStyleOpen && (
+        <div className="pointer-events-none absolute inset-x-3 bottom-20 z-30 md:hidden">
+          <div className="pointer-events-auto rounded-xl border border-slate-200 bg-white/95 p-3 text-xs text-slate-700 shadow-sm backdrop-blur">
+            <div className="mb-2 flex items-center justify-between">
+              <span>Style</span>
+              <button className="rounded-md px-2 py-1 text-xs text-slate-600" onClick={() => setMobileStyleOpen(false)}>
+                Close
+              </button>
+            </div>
+
+            <div className="mb-2">Stroke</div>
+            <div className="mb-4 flex flex-wrap gap-2">
+              {STROKE_COLORS.map((color) => (
+                <button
+                  key={`m-stroke-${color}`}
+                  className={`h-6 w-6 rounded-md border ${
+                    strokeColor === color ? "border-indigo-500 ring-1 ring-indigo-300" : "border-slate-300"
+                  }`}
+                  style={{ backgroundColor: color }}
+                  onClick={() => onPickStroke(color)}
+                />
+              ))}
+            </div>
+
+            <div className="mb-2">Background</div>
+            <div className="mb-4 flex flex-wrap gap-2">
+              {FILL_COLORS.map((color) => (
+                <button
+                  key={`m-fill-${color}`}
+                  className={`h-6 w-6 rounded-md border ${
+                    fillColor === color ? "border-indigo-500 ring-1 ring-indigo-300" : "border-slate-300"
+                  }`}
+                  style={{
+                    backgroundColor: color === "transparent" ? "#ffffff" : color,
+                    backgroundImage:
+                      color === "transparent"
+                        ? "linear-gradient(45deg,#e5e7eb 25%,transparent 25%,transparent 75%,#e5e7eb 75%,#e5e7eb),linear-gradient(45deg,#e5e7eb 25%,transparent 25%,transparent 75%,#e5e7eb 75%,#e5e7eb)"
+                        : "none",
+                    backgroundSize: color === "transparent" ? "10px 10px" : "auto",
+                    backgroundPosition: color === "transparent" ? "0 0,5px 5px" : "initial",
+                  }}
+                  onClick={() => onPickFill(color)}
+                />
+              ))}
+            </div>
+
+            <div className="mb-2">Opacity</div>
+            <input
+              className="mb-1 w-full accent-indigo-500"
+              type="range"
+              min={0}
+              max={100}
+              value={opacity}
+              onChange={(e) => onOpacityChange(e.target.value)}
+            />
+            <div className="mb-4 flex justify-between text-[11px] text-slate-500">
+              <span>0</span>
+              <span>{opacity}</span>
+            </div>
+
             <div className="flex gap-2">
               <button
                 className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"

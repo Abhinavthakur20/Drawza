@@ -355,6 +355,14 @@ export default function Canvas({
   }, []);
 
   const onPointerDown = (e) => {
+    if (e.pointerType === "touch") {
+      e.preventDefault();
+    }
+
+    if (canvasRef.current?.setPointerCapture) {
+      canvasRef.current.setPointerCapture(e.pointerId);
+    }
+
     if (editingText) {
       return;
     }
@@ -450,10 +458,14 @@ export default function Canvas({
   };
 
   const onPointerMoveHandler = (e) => {
+    if (e.pointerType === "touch") {
+      e.preventDefault();
+    }
+
     const canvas = canvasRef.current;
     const point = toWorld(e, canvas, zoom, panOffset);
-
-    onCursorMove?.({ x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY });
+    const rect = canvas.getBoundingClientRect();
+    onCursorMove?.({ x: e.clientX - rect.left, y: e.clientY - rect.top });
 
     if (interactionRef.current.mode === "none") {
       return;
@@ -506,7 +518,15 @@ export default function Canvas({
     }
   };
 
-  const onPointerUpHandler = () => {
+  const onPointerUpHandler = (e) => {
+    if (e.pointerType === "touch") {
+      e.preventDefault();
+    }
+
+    if (canvasRef.current?.hasPointerCapture?.(e.pointerId)) {
+      canvasRef.current.releasePointerCapture(e.pointerId);
+    }
+
     if (interactionRef.current.mode === "draw" && draft) {
       onCreate(draft);
       setSelectedIds([draft.id]);
@@ -673,11 +693,13 @@ export default function Canvas({
   return (
     <div className="relative h-full w-full overflow-hidden bg-[#f7f7f8]">
       <canvas
-        className="block h-full w-full"
+        className="block h-full w-full touch-none"
+        style={{ touchAction: "none" }}
         ref={canvasRef}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMoveHandler}
         onPointerUp={onPointerUpHandler}
+        onPointerCancel={onPointerUpHandler}
         onPointerLeave={onPointerUpHandler}
       />
       {editingText && (
