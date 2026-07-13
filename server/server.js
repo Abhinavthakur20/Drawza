@@ -14,7 +14,7 @@ const app = express();
 const server = http.createServer(app);
 const isProduction = process.env.NODE_ENV === "production";
 
-const DEFAULT_ALLOWED_ORIGINS = ["http://localhost:5173", "https://drawza.vercel.app"];
+const DEFAULT_ALLOWED_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173", "https://drawza.vercel.app"];
 const ENV_ORIGINS = (process.env.CLIENT_URLS || process.env.CLIENT_URL || "")
   .split(",")
   .map((origin) => origin.trim())
