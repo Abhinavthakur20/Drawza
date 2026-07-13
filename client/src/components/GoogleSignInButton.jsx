@@ -1,10 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 
+let initializedClientId = "";
+let googleCredentialCallback = null;
+
 export default function GoogleSignInButton({ onCredential, disabled }) {
   const containerRef = useRef(null);
+  const disabledRef = useRef(disabled);
+  const onCredentialRef = useRef(onCredential);
   const [error, setError] = useState("");
   const [buttonWidth, setButtonWidth] = useState(320);
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  useEffect(() => {
+    disabledRef.current = disabled;
+    onCredentialRef.current = onCredential;
+  }, [disabled, onCredential]);
 
   useEffect(() => {
     const updateWidth = () => {
@@ -43,20 +53,25 @@ export default function GoogleSignInButton({ onCredential, disabled }) {
         return;
       }
 
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: async (response) => {
-          if (!response?.credential || disabled) {
-            return;
-          }
-          try {
-            setError("");
-            await onCredential(response.credential);
-          } catch (err) {
-            setError(err.message || "Google sign-in failed");
-          }
-        },
-      });
+      googleCredentialCallback = async (response) => {
+        if (!response?.credential || disabledRef.current) {
+          return;
+        }
+        try {
+          setError("");
+          await onCredentialRef.current(response.credential);
+        } catch (err) {
+          setError(err.message || "Google sign-in failed");
+        }
+      };
+
+      if (initializedClientId !== clientId) {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (response) => googleCredentialCallback?.(response),
+        });
+        initializedClientId = clientId;
+      }
 
       containerRef.current.innerHTML = "";
       window.google.accounts.id.renderButton(containerRef.current, {
@@ -73,8 +88,11 @@ export default function GoogleSignInButton({ onCredential, disabled }) {
 
     return () => {
       cancelled = true;
+      if (googleCredentialCallback) {
+        googleCredentialCallback = null;
+      }
     };
-  }, [buttonWidth, clientId, disabled, onCredential]);
+  }, [buttonWidth, clientId]);
 
   return (
     <div className="mt-3 grid justify-items-center gap-2">

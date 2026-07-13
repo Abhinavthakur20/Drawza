@@ -1,7 +1,10 @@
 import axios from "axios";
 
+const apiBaseUrl = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/+$/, "");
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
+  baseURL: apiBaseUrl,
+  timeout: 20000,
 });
 
 api.interceptors.request.use((config) => {
@@ -11,5 +14,26 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+export function getApiErrorMessage(error, fallbackMessage = "Request failed") {
+  if (!axios.isAxiosError(error)) {
+    return error?.message || fallbackMessage;
+  }
+
+  const serverMessage = error.response?.data?.message;
+  if (serverMessage) {
+    return serverMessage;
+  }
+
+  if (error.code === "ECONNABORTED") {
+    return "Server took too long to respond. Please try again in a moment.";
+  }
+
+  if (error.code === "ERR_NETWORK" || !error.response) {
+    return `Cannot reach the server at ${apiBaseUrl}. Please check that the backend is running.`;
+  }
+
+  return fallbackMessage;
+}
 
 export default api;

@@ -12,6 +12,7 @@ const { initSocket } = require("./socket/socketHandler");
 
 const app = express();
 const server = http.createServer(app);
+const isProduction = process.env.NODE_ENV === "production";
 
 const DEFAULT_ALLOWED_ORIGINS = ["http://localhost:5173", "https://drawza.vercel.app"];
 const ENV_ORIGINS = (process.env.CLIENT_URLS || process.env.CLIENT_URL || "")
@@ -45,7 +46,18 @@ app.use(
 app.use(express.json({ limit: "2mb" }));
 
 app.get("/api/health", (_, res) => {
-  res.status(200).json({ status: "ok" });
+  res.status(200).json({
+    status: "ok",
+    database: mongoose.connection.readyState === 1 ? "connected" : "connecting",
+  });
+});
+
+app.use("/api", (req, res, next) => {
+  if (mongoose.connection.readyState === 1) {
+    return next();
+  }
+
+  return res.status(503).json({ message: "Database connection is not ready. Please try again shortly." });
 });
 
 app.use("/api/auth", authRoutes);
@@ -60,27 +72,31 @@ initSocket(io);
 const PORT = Number(process.env.PORT) || 5000;
 
 async function start() {
-  try {
-    if (!process.env.MONGO_URI) {
-      throw new Error("MONGO_URI is not set");
-    }
-
-    if (!process.env.JWT_SECRET) {
-      throw new Error("JWT_SECRET is not set");
-    }
-
-    const mongoConnection = await mongoose.connect(process.env.MONGO_URI);
-    // eslint-disable-next-line no-console
-    console.log(`MongoDB connected: ${mongoConnection.connection.host}`);
-    server.listen(PORT, () => {
-      // eslint-disable-next-line no-console
-      console.log(`Server running on http://localhost:${PORT}`);
-    });
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error("Failed to start server", error.message);
-    process.exit(1);
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is not set");
   }
+
+  if (!process.env.MONGO_URI) {
+    throw new Error("MONGO_URI is not set");
+  }
+
+  server.listen(PORT, () => {
+    // eslint-disable-next-line no-console
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+
+  const mongoConnection = await mongoose.connect(process.env.MONGO_URI, {
+    serverSelectionTimeoutMS: 10000,
+    bufferTimeoutMS: 5000,
+  });
+  // eslint-disable-next-line no-console
+  console.log(`MongoDB connected: ${mongoConnection.connection.host}`);
 }
 
-start();
+start().catch((error) => {
+  // eslint-disable-next-line no-console
+  console.error("Failed to start server", error.message);
+  if (!isProduction) {
+    process.exit(1);
+  }
+});

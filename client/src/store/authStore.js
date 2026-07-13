@@ -1,5 +1,10 @@
 import { create } from "zustand";
-import api from "../utils/api";
+import api, { getApiErrorMessage } from "../utils/api";
+
+function saveSession(data) {
+  localStorage.setItem("token", data.token);
+  localStorage.setItem("user", JSON.stringify(data.user));
+}
 
 const useAuthStore = create((set) => ({
   user: JSON.parse(localStorage.getItem("user") || "null"),
@@ -11,14 +16,15 @@ const useAuthStore = create((set) => ({
     set({ loading: true, error: "" });
     try {
       const { data } = await api.post("/api/auth/signup", payload);
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      set({ token: data.token, user: data.user, loading: false });
+      saveSession(data);
+      set({ token: data.token, user: data.user, error: "" });
       return data;
     } catch (error) {
-      const message = error.response?.data?.message || "Signup failed";
-      set({ error: message, loading: false });
+      const message = getApiErrorMessage(error, "Signup failed");
+      set({ error: message });
       throw new Error(message);
+    } finally {
+      set({ loading: false });
     }
   },
 
@@ -26,14 +32,15 @@ const useAuthStore = create((set) => ({
     set({ loading: true, error: "" });
     try {
       const { data } = await api.post("/api/auth/login", payload);
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      set({ token: data.token, user: data.user, loading: false });
+      saveSession(data);
+      set({ token: data.token, user: data.user, error: "" });
       return data;
     } catch (error) {
-      const message = error.response?.data?.message || "Login failed";
-      set({ error: message, loading: false });
+      const message = getApiErrorMessage(error, "Login failed");
+      set({ error: message });
       throw new Error(message);
+    } finally {
+      set({ loading: false });
     }
   },
 
@@ -41,14 +48,15 @@ const useAuthStore = create((set) => ({
     set({ loading: true, error: "" });
     try {
       const { data } = await api.post("/api/auth/google", { credential });
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      set({ token: data.token, user: data.user, loading: false });
+      saveSession(data);
+      set({ token: data.token, user: data.user, error: "" });
       return data;
     } catch (error) {
-      const message = error.response?.data?.message || "Google sign-in failed";
-      set({ error: message, loading: false });
+      const message = getApiErrorMessage(error, "Google sign-in failed");
+      set({ error: message });
       throw new Error(message);
+    } finally {
+      set({ loading: false });
     }
   },
 
