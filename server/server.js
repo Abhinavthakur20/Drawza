@@ -71,6 +71,20 @@ initSocket(io);
 
 const PORT = Number(process.env.PORT) || 5000;
 
+function listen(port) {
+  return new Promise((resolve, reject) => {
+    const onError = (error) => {
+      reject(error);
+    };
+
+    server.once("error", onError);
+    server.listen(port, () => {
+      server.off("error", onError);
+      resolve();
+    });
+  });
+}
+
 async function start() {
   if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET is not set");
@@ -80,10 +94,9 @@ async function start() {
     throw new Error("MONGO_URI is not set");
   }
 
-  server.listen(PORT, () => {
-    // eslint-disable-next-line no-console
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+  await listen(PORT);
+  // eslint-disable-next-line no-console
+  console.log(`Server running on http://localhost:${PORT}`);
 
   const mongoConnection = await mongoose.connect(process.env.MONGO_URI, {
     serverSelectionTimeoutMS: 10000,
@@ -95,7 +108,12 @@ async function start() {
 
 start().catch((error) => {
   // eslint-disable-next-line no-console
-  console.error("Failed to start server", error.message);
+  if (error.code === "EADDRINUSE") {
+    console.error(`Port ${PORT} is already in use. Stop the existing server or set a different PORT in server/.env.`);
+  } else {
+    console.error("Failed to start server", error.message);
+  }
+
   if (!isProduction) {
     process.exit(1);
   }
