@@ -45,10 +45,28 @@ app.use(
 );
 app.use(express.json({ limit: "2mb" }));
 
+function getDatabaseStatus() {
+  switch (mongoose.connection.readyState) {
+    case 0:
+      return "disconnected";
+    case 1:
+      return "connected";
+    case 2:
+      return "connecting";
+    case 3:
+      return "disconnecting";
+    default:
+      return "unknown";
+  }
+}
+
 app.get("/api/health", (_, res) => {
-  res.status(200).json({
-    status: "ok",
-    database: mongoose.connection.readyState === 1 ? "connected" : "connecting",
+  const database = getDatabaseStatus();
+  const isHealthy = database === "connected";
+
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? "ok" : "degraded",
+    database,
   });
 });
 
@@ -57,7 +75,10 @@ app.use("/api", (req, res, next) => {
     return next();
   }
 
-  return res.status(503).json({ message: "Database connection is not ready. Please try again shortly." });
+  return res.status(503).json({
+    message: "Database connection is not ready. Please try again shortly.",
+    database: getDatabaseStatus(),
+  });
 });
 
 app.use("/api/auth", authRoutes);
@@ -94,16 +115,18 @@ async function start() {
     throw new Error("MONGO_URI is not set");
   }
 
-  await listen(PORT);
-  // eslint-disable-next-line no-console
-  console.log(`Server running on http://localhost:${PORT}`);
-
   const mongoConnection = await mongoose.connect(process.env.MONGO_URI, {
     serverSelectionTimeoutMS: 10000,
+    connectTimeoutMS: 10000,
+    socketTimeoutMS: 20000,
     bufferTimeoutMS: 5000,
   });
   // eslint-disable-next-line no-console
   console.log(`MongoDB connected: ${mongoConnection.connection.host}`);
+
+  await listen(PORT);
+  // eslint-disable-next-line no-console
+  console.log(`Server running on http://localhost:${PORT}`);
 }
 
 start().catch((error) => {
@@ -114,7 +137,5 @@ start().catch((error) => {
     console.error("Failed to start server", error.message);
   }
 
-  if (!isProduction) {
-    process.exit(1);
-  }
+  process.exit(1);
 });
