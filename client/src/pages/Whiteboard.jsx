@@ -259,6 +259,16 @@ export default function Whiteboard() {
     navigate("/profile");
   };
 
+  const handleChooseWorkspace = async () => {
+    clearTimeout(saveTimerRef.current);
+
+    try {
+      await api.post(`/api/boards/${roomId}`, { elements });
+    } catch (_) {}
+
+    navigate("/rooms");
+  };
+
   const handleShareRoomCode = async () => {
     const shareText = `Room code: ${roomId}`;
     try {
@@ -332,6 +342,7 @@ export default function Whiteboard() {
         hasElements={elements.length > 0}
         onlineCount={onlineCount}
         onShareRoomCode={handleShareRoomCode}
+        onChooseWorkspace={handleChooseWorkspace}
         onProfile={handleProfile}
         onLogout={handleLogout}
       />

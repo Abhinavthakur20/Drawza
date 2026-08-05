@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import GoogleSignInButton from "../components/GoogleSignInButton";
+import { DEMO_ACCOUNT } from "../constants/demoAccount";
 import useAuthStore from "../store/authStore";
 
 export default function Signup() {
@@ -8,7 +9,9 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [usingDemo, setUsingDemo] = useState(false);
   const signup = useAuthStore((state) => state.signup);
+  const login = useAuthStore((state) => state.login);
   const googleLogin = useAuthStore((state) => state.googleLogin);
   const loading = useAuthStore((state) => state.loading);
   const navigate = useNavigate();
@@ -32,6 +35,22 @@ export default function Signup() {
       navigate("/rooms", { replace: true });
     } catch (err) {
       setError(err.message);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setError("");
+    setUsingDemo(true);
+    setEmail(DEMO_ACCOUNT.email);
+    setPassword(DEMO_ACCOUNT.password);
+
+    try {
+      await login(DEMO_ACCOUNT);
+      navigate("/rooms", { replace: true });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUsingDemo(false);
     }
   };
 
@@ -84,6 +103,30 @@ export default function Signup() {
           </form>
           <div className="my-3 text-center text-xs text-slate-500">or</div>
           <GoogleSignInButton onCredential={handleGoogleCredential} disabled={loading} />
+          <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50/70 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Recruiter demo account</p>
+                <p className="mt-1 text-xs text-slate-600">Use these credentials to view the project without creating an account.</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleDemoLogin}
+                disabled={loading}
+                className="drawza-btn-secondary !rounded-xl !border-blue-200 !px-4 !py-2 text-xs"
+              >
+                {usingDemo ? "Opening..." : "Use demo"}
+              </button>
+            </div>
+            <div className="mt-3 grid gap-2 text-xs text-slate-700 sm:grid-cols-2">
+              <p>
+                Email: <span className="font-semibold text-slate-900">{DEMO_ACCOUNT.email}</span>
+              </p>
+              <p>
+                Password: <span className="font-semibold text-slate-900">{DEMO_ACCOUNT.password}</span>
+              </p>
+            </div>
+          </div>
           <p className="mt-3.5 text-sm text-slate-600">
             Already have an account? <Link to="/login">Login</Link>
           </p>

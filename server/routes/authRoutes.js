@@ -7,6 +7,11 @@ const { verifyJWT } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const DEMO_ACCOUNT = {
+  name: "Demo Recruiter",
+  email: "recruiter@drawza.demo",
+  password: "Recruiter@123",
+};
 
 function signToken(user) {
   return jwt.sign(
@@ -27,6 +32,33 @@ function serializeUser(user) {
     avatarUrl: user.avatarUrl || "",
     createdAt: user.createdAt,
   };
+}
+
+async function getDemoUser() {
+  let user = await User.findOne({ email: DEMO_ACCOUNT.email }).select("+password");
+
+  if (!user) {
+    return User.create(DEMO_ACCOUNT);
+  }
+
+  let needsSave = false;
+  const isValidPassword = user.password ? await bcrypt.compare(DEMO_ACCOUNT.password, user.password) : false;
+
+  if (!isValidPassword) {
+    user.password = DEMO_ACCOUNT.password;
+    needsSave = true;
+  }
+
+  if (user.name !== DEMO_ACCOUNT.name) {
+    user.name = DEMO_ACCOUNT.name;
+    needsSave = true;
+  }
+
+  if (needsSave) {
+    await user.save();
+  }
+
+  return user;
 }
 
 router.post("/signup", async (req, res) => {
@@ -70,7 +102,10 @@ router.post("/login", async (req, res) => {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
-    const user = await User.findOne({ email: normalizedEmail }).select("+password");
+    const isDemoLogin = normalizedEmail === DEMO_ACCOUNT.email && password === DEMO_ACCOUNT.password;
+    const user = isDemoLogin
+      ? await getDemoUser()
+      : await User.findOne({ email: normalizedEmail }).select("+password");
 
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
